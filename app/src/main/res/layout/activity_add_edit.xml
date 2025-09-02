@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="16dp">
+
+        <EditText
+            android:id="@+id/etShort"
+            android:hint="Όνομα φαρμάκου"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <EditText
+            android:id="@+id/etDesc"
+            android:hint="Περιγραφή"
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <TextView
+            android:layout_marginTop="12dp"
+            android:text="Χρονισμός (Time term)"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+        <Spinner
+            android:id="@+id/spTerm"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <TextView
+            android:layout_marginTop="12dp"
+            android:text="Έναρξη"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/tvStart"
+            android:padding="8dp"
+            android:background="#eeeeee"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <TextView
+            android:layout_marginTop="8dp"
+            android:text="Λήξη"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/tvEnd"
+            android:padding="8dp"
+            android:background="#eeeeee"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <EditText
+            android:id="@+id/etDocName"
+            android:hint="Όνομα ιατρού (προαιρετικό)"
+            android:layout_marginTop="12dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <EditText
+            android:id="@+id/etDocLoc"
+            android:hint="Τοποθεσία ιατρού (π.χ. Ερμού 1, Αθήνα)"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/btnSave"
+            android:text="Αποθήκευση"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    </LinearLayout>
+</ScrollView>

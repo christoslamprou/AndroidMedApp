@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/action_delete_uid" android:title="Delete by UID…"/>
+    <item android:id="@+id/action_recompute"  android:title="Επανυπολογισμός τώρα"/>
+    <item android:id="@+id/action_export_html" android:title="Export (HTML)"/>
+    <item android:id="@+id/action_export_txt"  android:title="Export (TXT)"/>
+</menu>

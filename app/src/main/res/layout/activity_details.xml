@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvShort"
+            android:textStyle="bold" android:textSize="20sp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/tvDesc"
+            android:layout_marginTop="6dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <View
+            android:layout_width="match_parent" android:layout_height="1dp"
+            android:layout_marginTop="12dp" android:background="#22000000"/>
+
+        <TextView
+            android:id="@+id/tvTerm"
+            android:layout_marginTop="12dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/tvRange"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"/>
+
+        <TextView
+            android:id="@+id/tvActive"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"/>
+
+        <TextView
+            android:id="@+id/tvToday"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/tvLast"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent" android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/btnMap"
+                android:text="Χάρτης ιατρού"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+            <Button
+                android:id="@+id/btnReceive"
+                android:text="Έλαβα σήμερα"
+                android:layout_marginStart="12dp"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+
+            <Button
+                android:id="@+id/btnEdit"
+                android:text="Επεξεργασία"
+                android:layout_marginStart="12dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
