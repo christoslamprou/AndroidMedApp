@@ -32,7 +32,7 @@ public class DetailsActivity extends AppCompatActivity {
     private int uid;
 
     private TextView tvShort, tvDesc, tvTerm, tvRange, tvActive, tvToday, tvLast;
-    private Button btnReceive, btnMap;
+    private Button btnReceive, btnMap, btnEdit;
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault());
 
@@ -58,6 +58,14 @@ public class DetailsActivity extends AppCompatActivity {
 
         // Παρακολούθηση μίας εγγραφής
         vm.getById(uid).observe(this, this::bind);
+
+        btnEdit = findViewById(R.id.btnEdit);
+        btnEdit.setOnClickListener(v -> {
+            android.content.Intent i = new android.content.Intent(this, ui.AddEditActivity.class);
+            i.putExtra(ui.AddEditActivity.EXTRA_UID, uid); // περνάμε το UID για edit
+            startActivity(i);
+        });
+
 
         // «Έλαβα σήμερα»
         btnReceive.setOnClickListener(v ->
@@ -170,4 +178,22 @@ public class DetailsActivity extends AppCompatActivity {
             Toast.makeText(this, "Δεν βρέθηκε εφαρμογή χαρτών", Toast.LENGTH_SHORT).show();
         }
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(android.view.Menu menu) {
+        getMenuInflater().inflate(R.menu.details_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@androidx.annotation.NonNull android.view.MenuItem item) {
+        if (item.getItemId() == R.id.action_edit) {
+            android.content.Intent i = new android.content.Intent(this, ui.AddEditActivity.class);
+            i.putExtra(ui.AddEditActivity.EXTRA_UID, uid);
+            startActivity(i);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 }
