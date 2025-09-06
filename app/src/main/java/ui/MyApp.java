@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MyApp extends Application {
 
+    // Schedule a periodic worker that recomputes flags once every hour
     private void scheduleHourlyRecompute() {
         java.util.concurrent.TimeUnit H = java.util.concurrent.TimeUnit.HOURS;
 
@@ -23,20 +24,21 @@ public class MyApp extends Application {
 
         androidx.work.WorkManager.getInstance(this).enqueueUniquePeriodicWork(
                 "recomputeHourly",
-                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP, // keep existing schedule if present
                 req
         );
     }
 
     @Override public void onCreate() {
         super.onCreate();
+        // Start hourly schedule
         scheduleHourlyRecompute();
-        // άμεσος υπολογισμός στην εκκίνηση:
+        // Also run one immediate recompute on app start
         androidx.work.WorkManager.getInstance(this)
                 .enqueue(androidx.work.OneTimeWorkRequest.from(ui.RecomputeWorker.class));
     }
 
-
+    // Utility: millis until next specific HH:mm
     private long millisUntilNext(int hour, int minute) {
         Calendar cal = Calendar.getInstance();
         long now = cal.getTimeInMillis();

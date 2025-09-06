@@ -16,22 +16,26 @@ import data.AppDatabase;
 
 public class MedProvider extends ContentProvider {
 
+    // URI match codes
     private static final int P_ALL = 1;
     private static final int P_ID  = 2;
     private static final int T_ALL = 3;
     private static final int T_ID  = 4;
 
+    // Map incoming URIs to match codes
     private static final UriMatcher MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
     static {
-        MATCHER.addURI(MedContract.AUTHORITY, MedContract.PATH_PRESCRIPTIONS,   P_ALL);
+        MATCHER.addURI(MedContract.AUTHORITY, MedContract.PATH_PRESCRIPTIONS,        P_ALL);
         MATCHER.addURI(MedContract.AUTHORITY, MedContract.PATH_PRESCRIPTIONS + "/#", P_ID);
-        MATCHER.addURI(MedContract.AUTHORITY, MedContract.PATH_TIME_TERMS,      T_ALL);
-        MATCHER.addURI(MedContract.AUTHORITY, MedContract.PATH_TIME_TERMS + "/#", T_ID);
+        MATCHER.addURI(MedContract.AUTHORITY, MedContract.PATH_TIME_TERMS,           T_ALL);
+        MATCHER.addURI(MedContract.AUTHORITY, MedContract.PATH_TIME_TERMS + "/#",    T_ID);
     }
 
+    // Low-level DB (via Room)
     private SupportSQLiteDatabase db;
 
     @Override public boolean onCreate() {
+        // Open the database for direct SQL queries used by the provider
         db = AppDatabase.getInstance(getContext()).getOpenHelper().getWritableDatabase();
         return true;
     }
@@ -44,8 +48,9 @@ public class MedProvider extends ContentProvider {
         String sql;
         switch (m) {
             case P_ALL:
+                // Alias uid as _id for CursorAdapter compatibility
                 sql = "SELECT " +
-                        "uid AS _id, " + // _id για συμβατότητα με CursorAdapters
+                        "uid AS _id, " +
                         "uid, shortName, description, startDateEpoch, endDateEpoch, timeTermId, " +
                         "doctorName, doctorLocation, isActive, hasReceivedToday, lastDateReceivedEpoch " +
                         "FROM prescription_drugs";
@@ -77,12 +82,14 @@ public class MedProvider extends ContentProvider {
         }
 
         Cursor c = db.query(sql, selectionArgs);
+        // Let observers know which URI this cursor is tied to
         if (getContext() != null) c.setNotificationUri(getContext().getContentResolver(), uri);
         return c;
     }
 
     @Nullable @Override
     public String getType(@NonNull Uri uri) {
+        // MIME types for list/item of each path
         switch (MATCHER.match(uri)) {
             case P_ALL: return "vnd.android.cursor.dir/vnd." + MedContract.AUTHORITY + ".prescription";
             case P_ID:  return "vnd.android.cursor.item/vnd." + MedContract.AUTHORITY + ".prescription";
@@ -99,7 +106,7 @@ public class MedProvider extends ContentProvider {
         switch (m) {
             case P_ALL:
                 if (values == null) values = new ContentValues();
-                // default τιμές για flags, αν δεν στάλθηκαν
+                // Defaults for flags if not provided
                 if (!values.containsKey("isActive")) values.put("isActive", 0);
                 if (!values.containsKey("hasReceivedToday")) values.put("hasReceivedToday", 0);
                 rowId = db.insert("prescription_drugs", SQLiteDatabase.CONFLICT_ABORT, values);
@@ -113,7 +120,7 @@ public class MedProvider extends ContentProvider {
         if (rowId == -1) return null;
 
         Uri out = ContentUris.withAppendedId(uri, rowId);
-        notify(uri);
+        notify(uri); // notify observers
         return out;
     }
 
@@ -127,14 +134,16 @@ public class MedProvider extends ContentProvider {
                 break;
             case P_ID:
                 long id = ContentUris.parseId(uri);
-                rows = db.delete("prescription_drugs", "uid = ?" + (selection!=null? " AND ("+selection+")":""), new String[]{ String.valueOf(id) });
+                rows = db.delete("prescription_drugs",
+                        "uid = ?" + (selection!=null? " AND ("+selection+")":""), new String[]{ String.valueOf(id) });
                 break;
             case T_ALL:
                 rows = db.delete("time_terms", selection, selectionArgs);
                 break;
             case T_ID:
                 long tid = ContentUris.parseId(uri);
-                rows = db.delete("time_terms", "id = ?" + (selection!=null? " AND ("+selection+")":""), new String[]{ String.valueOf(tid) });
+                rows = db.delete("time_terms",
+                        "id = ?" + (selection!=null? " AND ("+selection+")":""), new String[]{ String.valueOf(tid) });
                 break;
             default:
                 throw new IllegalArgumentException("Delete not supported on " + uri);
@@ -171,6 +180,7 @@ public class MedProvider extends ContentProvider {
         return rows;
     }
 
+    // Helper: fire content change notifications
     private void notify(Uri uri) {
         if (getContext() != null) {
             getContext().getContentResolver().notifyChange(uri, null);

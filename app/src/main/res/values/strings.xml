@@ -1,4 +1,44 @@
 <resources>
     <string name="app_name">MyMedApp</string>
-    <string name="add" />
+
+    <!-- Add/Edit form -->
+    <string name="hint_short_name">Medicine name</string>
+    <string name="hint_description">Description</string>
+    <string name="label_time_term">Time term</string>
+    <string name="label_start">Start</string>
+    <string name="label_end">End</string>
+    <string name="hint_doctor_name">Doctor name (optional)</string>
+    <string name="hint_doctor_location">Doctor location (e.g., Ermou 1, Athens)</string>
+    <string name="btn_save">Save</string>
+    <string name="add">Add</string>
+
+
+    <!-- Details screen -->
+    <string name="btn_map_doctor">Doctor map</string>
+    <string name="btn_received_today">Received today</string>
+    <string name="btn_edit">Edit</string>
+    <string name="label_timing">Timing</string>
+    <string name="label_duration">Duration</string>
+    <string name="label_active">Active</string>
+    <string name="label_received_today">Received today</string>
+    <string name="label_last_received">Last received</string>
+    <string name="yes">YES</string>
+    <string name="no">NO</string>
+    <string name="dash">-</string>
+
+    <!-- Menus -->
+    <string name="menu_delete_uid">Delete by UID…</string>
+    <string name="menu_recompute_now">Recompute now</string>
+    <string name="menu_export_html">Export (HTML)</string>
+    <string name="menu_export_txt">Export (TXT)</string>
+    <string name="menu_provider_demo">Provider demo</string>
+    <string name="menu_edit">Edit</string>
+
+    <!-- Messages / toasts -->
+    <string name="msg_short_required">Short name is required</string>
+    <string name="msg_end_before_start">End date cannot be before start date</string>
+    <string name="msg_mark_received_ok">Marked as received today</string>
+    <string name="msg_no_maps_app">No maps app found</string>
+    <string name="msg_export_failed">Export failed (Android &lt; 10 needs a different flow)</string>
+    <string name="msg_recompute_scheduled">Recompute scheduled</string>
 </resources>

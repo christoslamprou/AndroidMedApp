@@ -52,18 +52,18 @@
 
             <Button
                 android:id="@+id/btnMap"
-                android:text="Χάρτης ιατρού"
+                android:text="@string/btn_map_doctor"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"/>
 
             <Button
                 android:id="@+id/btnReceive"
-                android:text="Έλαβα σήμερα"
+                android:text="@string/btn_received_today"
                 android:layout_marginStart="12dp"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"/>
 
             <Button
                 android:id="@+id/btnEdit"
-                android:text="Επεξεργασία"
+                android:text="@string/btn_edit"
                 android:layout_marginStart="12dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>

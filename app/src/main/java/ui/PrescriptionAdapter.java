@@ -11,12 +11,20 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.mymedapp.R;
 import data.PrescriptionWithTerm;
 
+// RecyclerView adapter for the prescriptions list (click -> open details)
 public class PrescriptionAdapter extends ListAdapter<PrescriptionWithTerm, PrescriptionAdapter.VH> {
 
+    // Simple click callback to bubble item clicks to the Activity
     public interface OnClick { void onClick(PrescriptionWithTerm item); }
-    private final OnClick onClick;
-    public PrescriptionAdapter(OnClick onClick) { super(DIFF); this.onClick = onClick; }
 
+    private final OnClick onClick;
+
+    public PrescriptionAdapter(OnClick onClick) {
+        super(DIFF);
+        this.onClick = onClick;
+    }
+
+    // Diff logic: same item by uid; content changes tracked by a few key fields
     private static final DiffUtil.ItemCallback<PrescriptionWithTerm> DIFF =
             new DiffUtil.ItemCallback<PrescriptionWithTerm>() {
                 @Override public boolean areItemsTheSame(@NonNull PrescriptionWithTerm o, @NonNull PrescriptionWithTerm n) {
@@ -29,6 +37,7 @@ public class PrescriptionAdapter extends ListAdapter<PrescriptionWithTerm, Presc
                 }
             };
 
+    // Holds references to row views
     static class VH extends RecyclerView.ViewHolder {
         TextView uid, shortName, term;
         VH(@NonNull View v) {
@@ -39,15 +48,25 @@ public class PrescriptionAdapter extends ListAdapter<PrescriptionWithTerm, Presc
         }
     }
 
-    @NonNull @Override public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new VH(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_prescription, parent, false));
+    @NonNull @Override
+    public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // Inflate the row layout
+        View row = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_prescription, parent, false);
+        return new VH(row);
     }
 
-    @Override public void onBindViewHolder(@NonNull VH h, int position) {
+    @Override
+    public void onBindViewHolder(@NonNull VH h, int position) {
+        // Bind row data
         PrescriptionWithTerm it = getItem(position);
         h.uid.setText("UID: " + it.drug.uid);
         h.shortName.setText(it.drug.shortName);
         h.term.setText("Time: " + it.termCode);
-        h.itemView.setOnClickListener(v -> { if (onClick != null) onClick.onClick(it); });
+
+        // Forward clicks to the callback
+        h.itemView.setOnClickListener(v -> {
+            if (onClick != null) onClick.onClick(it);
+        });
     }
 }

@@ -31,10 +31,12 @@ public class DetailsActivity extends AppCompatActivity {
     private MedViewModel vm;
     private int uid;
 
+    // UI refs
     private TextView tvShort, tvDesc, tvTerm, tvRange, tvActive, tvToday, tvLast;
     private Button btnReceive, btnMap, btnEdit;
 
-    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault());
+    private static final DateTimeFormatter DATE_FMT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.getDefault());
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -46,35 +48,36 @@ public class DetailsActivity extends AppCompatActivity {
 
         vm = new ViewModelProvider(this).get(MedViewModel.class);
 
-        tvShort = findViewById(R.id.tvShort);
-        tvDesc  = findViewById(R.id.tvDesc);
-        tvTerm  = findViewById(R.id.tvTerm);
-        tvRange = findViewById(R.id.tvRange);
-        tvActive= findViewById(R.id.tvActive);
-        tvToday = findViewById(R.id.tvToday);
-        tvLast  = findViewById(R.id.tvLast);
+        // Find views
+        tvShort  = findViewById(R.id.tvShort);
+        tvDesc   = findViewById(R.id.tvDesc);
+        tvTerm   = findViewById(R.id.tvTerm);
+        tvRange  = findViewById(R.id.tvRange);
+        tvActive = findViewById(R.id.tvActive);
+        tvToday  = findViewById(R.id.tvToday);
+        tvLast   = findViewById(R.id.tvLast);
         btnReceive = findViewById(R.id.btnReceive);
         btnMap     = findViewById(R.id.btnMap);
+        btnEdit    = findViewById(R.id.btnEdit);
 
-        // Παρακολούθηση μίας εγγραφής
+        // Observe a single item and bind it to the UI
         vm.getById(uid).observe(this, this::bind);
 
-        btnEdit = findViewById(R.id.btnEdit);
+        // Open edit form
         btnEdit.setOnClickListener(v -> {
-            android.content.Intent i = new android.content.Intent(this, ui.AddEditActivity.class);
-            i.putExtra(ui.AddEditActivity.EXTRA_UID, uid); // περνάμε το UID για edit
+            Intent i = new Intent(this, ui.AddEditActivity.class);
+            i.putExtra(ui.AddEditActivity.EXTRA_UID, uid); // pass UID for edit
             startActivity(i);
         });
 
-
-        // «Έλαβα σήμερα»
+        // Mark "received today"
         btnReceive.setOnClickListener(v ->
                 vm.receivedToday(uid, rows -> {
                     if (rows != null && rows > 0) {
-                        Toast.makeText(this, "Καταχωρήθηκε: Έλαβα σήμερα", Toast.LENGTH_SHORT).show();
-                        // Το UI θα ανανεωθεί έτσι κι αλλιώς από το LiveData observe
+                        Toast.makeText(this, "Marked as received today", Toast.LENGTH_SHORT).show();
+                        // UI refresh comes from LiveData observer
                     } else {
-                        Toast.makeText(this, "Δεν έγινε ενημέρωση", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "No update made", Toast.LENGTH_SHORT).show();
                     }
                 })
         );
@@ -84,46 +87,50 @@ public class DetailsActivity extends AppCompatActivity {
     private void bind(PrescriptionWithTerm it) {
         if (it == null) return;
 
+        // Basic fields
         tvShort.setText(it.drug.shortName);
         tvDesc.setText(emptyToDash(it.drug.description));
-        tvTerm.setText("Χρονισμός: " + emptyToDash(it.termCode));
+        tvTerm.setText("Timing: " + emptyToDash(it.termCode));
 
+        // Dates
         String from = formatEpochDay(it.drug.startDateEpoch);
         String to   = formatEpochDay(it.drug.endDateEpoch);
-        tvRange.setText("Διάρκεια: " + from + " → " + to);
+        tvRange.setText("Duration: " + from + " → " + to);
 
-        tvActive.setText("Ενεργό: " + (it.drug.isActive ? "ΝΑΙ" : "ΟΧΙ"));
-        tvToday.setText("Έλαβα σήμερα: " + (it.drug.hasReceivedToday ? "ΝΑΙ" : "ΟΧΙ"));
-        tvLast.setText("Τελευταία λήψη: " +
+        // Flags
+        tvActive.setText("Active: " + (it.drug.isActive ? "YES" : "NO"));
+        tvToday.setText("Received today: " + (it.drug.hasReceivedToday ? "YES" : "NO"));
+        tvLast.setText("Last received: " +
                 (it.drug.lastDateReceivedEpoch == null ? "-" : formatEpochDay(it.drug.lastDateReceivedEpoch)));
 
+        // Map button (enabled only if location exists)
         String loc = it.drug.doctorLocation == null ? "" : it.drug.doctorLocation.trim();
         btnMap.setEnabled(!loc.isEmpty());
         btnMap.setOnClickListener(v -> openMapWithGeocoderOrSearch(loc));
 
+        // (Optional duplicate safety: also set edit here if you prefer binding-time wiring)
         Button btnEdit = findViewById(R.id.btnEdit);
         btnEdit.setOnClickListener(v -> {
-            android.content.Intent i = new android.content.Intent(this, ui.AddEditActivity.class);
-            i.putExtra(ui.AddEditActivity.EXTRA_UID, it.drug.uid); // ΠΕΡΝΑΜΕ ΤΟ UID
+            Intent i = new Intent(this, ui.AddEditActivity.class);
+            i.putExtra(ui.AddEditActivity.EXTRA_UID, it.drug.uid); // pass UID
             startActivity(i);
         });
-
     }
 
     // ------------ Helpers ------------
 
+    // Return "-" if string is null/blank
     private String emptyToDash(String s) {
         return (s == null || s.trim().isEmpty()) ? "-" : s.trim();
     }
 
+    // Format epoch-day to yyyy-MM-dd
     @RequiresApi(api = Build.VERSION_CODES.O)
     private String formatEpochDay(long epochDay) {
         return LocalDate.ofEpochDay(epochDay).format(DATE_FMT);
     }
 
-    /**
-     * Προσπαθεί Geocoder για ακριβές pin· αν δεν βρει, ανοίγει search με geo:0,0?q=
-     */
+    // Try Geocoder for exact pin; fallback to geo search
     private void openMapWithGeocoderOrSearch(String rawLocation) {
         if (rawLocation == null) return;
         final String query = rawLocation.trim();
@@ -142,8 +149,7 @@ public class DetailsActivity extends AppCompatActivity {
                                 Uri.encode(lat + "," + lng + "(" + label + ")"));
                         startMapIntent(uri);
                     } else {
-                        // fallback: search
-                        openMapSearch(query);
+                        openMapSearch(query); // fallback: text search
                     }
                 });
             } catch (Exception e) {
@@ -152,33 +158,34 @@ public class DetailsActivity extends AppCompatActivity {
         }).start();
     }
 
+    // Build a geo search URI; if the query is too generic, append city for better results
     private void openMapSearch(String q) {
-        // Αν δεν δώσεις πλήρη διεύθυνση, πρόσθεσε πόλη για ακρίβεια (προαιρετικό)
         String query = q;
         if (!query.contains(",") && !query.matches(".*\\d.*")) {
-            query = query + ", Αθήνα";
+            query = query + ", Athens";
         }
         Uri uri = Uri.parse("geo:0,0?q=" + Uri.encode(query));
         startMapIntent(uri);
     }
 
+    // Prefer Google Maps if installed; otherwise any maps app
     private void startMapIntent(Uri uri) {
         Intent map = new Intent(Intent.ACTION_VIEW, uri);
         PackageManager pm = getPackageManager();
 
-        // Προτίμησε Google Maps αν υπάρχει
         map.setPackage("com.google.android.apps.maps");
         if (map.resolveActivity(pm) == null) {
-            map.setPackage(null); // οποιοδήποτε app χαρτών
+            map.setPackage(null); // fallback to any app
         }
 
         if (map.resolveActivity(pm) != null) {
             startActivity(map);
         } else {
-            Toast.makeText(this, "Δεν βρέθηκε εφαρμογή χαρτών", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No maps app found", Toast.LENGTH_SHORT).show();
         }
     }
 
+    // Details screen overflow menu with "Edit"
     @Override
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
         getMenuInflater().inflate(R.menu.details_menu, menu);
@@ -188,12 +195,11 @@ public class DetailsActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@androidx.annotation.NonNull android.view.MenuItem item) {
         if (item.getItemId() == R.id.action_edit) {
-            android.content.Intent i = new android.content.Intent(this, ui.AddEditActivity.class);
+            Intent i = new Intent(this, ui.AddEditActivity.class);
             i.putExtra(ui.AddEditActivity.EXTRA_UID, uid);
             startActivity(i);
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
-
 }

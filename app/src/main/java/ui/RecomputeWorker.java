@@ -17,16 +17,18 @@ public class RecomputeWorker extends Worker {
         super(context, params);
     }
 
+    // Periodic job: recompute isActive/hasReceivedToday flags for "today"
     @RequiresApi(api = Build.VERSION_CODES.O)
     @NonNull @Override
     public Result doWork() {
         try {
-            long today = LocalDate.now().toEpochDay(); // αν δεν θες java.time, δες εναλλακτική πιο κάτω
+            long today = LocalDate.now().toEpochDay(); // epoch-day (yyyy-MM-dd)
             AppDatabase.getInstance(getApplicationContext())
                     .prescriptionDao()
                     .recomputeForToday(today);
             return Result.success();
         } catch (Exception e) {
+            // If something transient fails, ask WorkManager to retry
             return Result.retry();
         }
     }

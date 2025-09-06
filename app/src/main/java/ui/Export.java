@@ -21,19 +21,21 @@ import data.PrescriptionWithTerm;
 
 public class Export {
 
+    // Timestamp used in exported file names
     public static String nowStamp() {
         return new SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(new Date());
     }
 
+    // Build an HTML table with all active prescriptions
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static String toHtml(List<PrescriptionWithTerm> list) {
         StringBuilder sb = new StringBuilder();
         sb.append("<!doctype html><html><head><meta charset='utf-8'><title>Active meds</title>");
         sb.append("<style>body{font-family:sans-serif}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:6px}th{background:#f5f5f5}</style>");
-        sb.append("</head><body><h2>Ενεργές συνταγές</h2>");
+        sb.append("</head><body><h2>Active prescriptions</h2>");
         sb.append("<table><tr>")
-                .append("<th>UID</th><th>Όνομα</th><th>Περιγραφή</th><th>Time term</th>")
-                .append("<th>Έναρξη</th><th>Λήξη</th><th>Ιατρός</th><th>Τοποθεσία</th>")
+                .append("<th>UID</th><th>Name</th><th>Description</th><th>Time term</th>")
+                .append("<th>Start</th><th>End</th><th>Doctor</th><th>Location</th>")
                 .append("<th>IsActive</th><th>HasReceivedToday</th><th>LastDateReceived</th>")
                 .append("</tr>");
         for (PrescriptionWithTerm it : list) {
@@ -59,19 +61,19 @@ public class Export {
     @RequiresApi(api = Build.VERSION_CODES.O)
     private static String epoch(long d){ return java.time.LocalDate.ofEpochDay(d).toString(); }
 
-
+    // Build a plain-text export with all active prescriptions
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static String toTxt(List<PrescriptionWithTerm> list) {
         StringBuilder sb = new StringBuilder();
         for (PrescriptionWithTerm it : list) {
             sb.append("UID: ").append(it.drug.uid).append('\n');
-            sb.append("Όνομα: ").append(nz(it.drug.shortName)).append('\n');
-            sb.append("Περιγραφή: ").append(nz(it.drug.description)).append('\n');
+            sb.append("Name: ").append(nz(it.drug.shortName)).append('\n');
+            sb.append("Description: ").append(nz(it.drug.description)).append('\n');
             sb.append("Time term: ").append(nz(it.termCode)).append('\n');
-            sb.append("Έναρξη: ").append(epoch(it.drug.startDateEpoch)).append('\n');
-            sb.append("Λήξη: ").append(epoch(it.drug.endDateEpoch)).append('\n');
-            sb.append("Ιατρός: ").append(nz(it.drug.doctorName)).append('\n');
-            sb.append("Τοποθεσία: ").append(nz(it.drug.doctorLocation)).append('\n');
+            sb.append("Start: ").append(epoch(it.drug.startDateEpoch)).append('\n');
+            sb.append("End: ").append(epoch(it.drug.endDateEpoch)).append('\n');
+            sb.append("Doctor: ").append(nz(it.drug.doctorName)).append('\n');
+            sb.append("Location: ").append(nz(it.drug.doctorLocation)).append('\n');
             sb.append("IsActive: ").append(it.drug.isActive).append('\n');
             sb.append("HasReceivedToday: ").append(it.drug.hasReceivedToday).append('\n');
             sb.append("LastDateReceived: ")
@@ -82,7 +84,7 @@ public class Export {
     }
     private static String nz(String s){ return (s==null||s.trim().isEmpty())?"-":s; }
 
-
+    // Save the given content into Downloads/MyMedApp using MediaStore
     @SuppressLint("InlinedApi")
     public static Uri saveToDownloads(Context ctx, String displayName, String mime, String content) {
         if (Build.VERSION.SDK_INT >= 29) {
@@ -102,12 +104,12 @@ public class Export {
                 return null;
             }
         } else {
-            // TODO: Προσθήκη υποστήριξης για API < 29 (SAF ACTION_CREATE_DOCUMENT) αν χρειαστεί
+            // TODO: Add SAF (ACTION_CREATE_DOCUMENT) support for API < 29 if needed
             return null;
         }
     }
 
-    // -- helpers --
+    // -- unused helpers kept for compatibility --
 
     private static String nullToDash(String s) { return (s == null || s.trim().isEmpty()) ? "-" : s; }
 
