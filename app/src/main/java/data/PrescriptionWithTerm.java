@@ -6,7 +6,7 @@ import androidx.room.Embedded;
 // DTO for a JOIN result: the prescription plus selected fields from time_terms
 public class PrescriptionWithTerm {
 
-    // All columns from prescription_drugs (prefixed in SQL as p.*)
+    // All columns from prescription_drugs
     @Embedded public PrescriptionDrug drug;
 
     // Joined term fields (aliased in the query)

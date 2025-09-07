@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    // Inflate overflow menu (⋮)
+    // Inflate overflow menu
     @Override
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
