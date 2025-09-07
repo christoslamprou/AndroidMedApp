@@ -34,6 +34,7 @@
     <string name="menu_provider_demo">Provider demo</string>
     <string name="menu_edit">Edit</string>
 
+
     <!-- Messages / toasts -->
     <string name="msg_short_required">Short name is required</string>
     <string name="msg_end_before_start">End date cannot be before start date</string>

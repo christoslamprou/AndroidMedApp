@@ -81,7 +81,8 @@ public class MedProvider extends ContentProvider {
                 throw new IllegalArgumentException("Unknown URI: " + uri);
         }
 
-        Cursor c = db.query(sql, selectionArgs);
+        Object[] args = (selectionArgs != null && selectionArgs.length > 0) ? selectionArgs : new Object[0];
+        Cursor c = db.query(sql, args);
         // Let observers know which URI this cursor is tied to
         if (getContext() != null) c.setNotificationUri(getContext().getContentResolver(), uri);
         return c;

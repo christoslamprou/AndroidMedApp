@@ -1,131 +1,99 @@
 package ui;
 
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.InputType;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+
 import com.example.mymedapp.R;
+
 import data.PrescriptionWithTerm;
 
-import java.time.LocalDate;
-
+/**
+ * Main screen that shows ACTIVE prescriptions and core actions.
+ */
 public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = "PROV"; // Log tag for provider demo
+
     private MedViewModel vm;
     private PrescriptionAdapter adapter;
 
-    // Entry point: sets up list, adapter, FAB, and LiveData observers
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    @Override protected void onCreate(Bundle savedInstanceState) {
+    // Set up list, adapter, FAB, and LiveData observer
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         vm = new ViewModelProvider(this).get(MedViewModel.class);
 
-        // Adapter opens details on item click
-        adapter = new PrescriptionAdapter(this::openDetailsLater);
+        // Adapter opens Details on item tap
+        adapter = new PrescriptionAdapter(this::openDetails);
 
         RecyclerView recycler = findViewById(R.id.recycler);
         recycler.setAdapter(adapter);
 
-        // FAB: open the Add/Edit form for a new item
-        findViewById(R.id.fabAdd).setOnClickListener(v -> {
-            startActivity(new android.content.Intent(this, ui.AddEditActivity.class));
-        });
+        // FAB opens Add/Edit for a new item
+        findViewById(R.id.fabAdd).setOnClickListener(v ->
+                startActivity(new Intent(this, AddEditActivity.class)));
 
-        // Observe active items; list updates automatically via LiveData
+        // Observe ACTIVE items; UI updates automatically
         vm.getActive().observe(this, list -> adapter.submitList(list));
     }
 
-    // Quick-add dialog used earlier; kept for convenience/testing
-    @androidx.annotation.RequiresApi(api = android.os.Build.VERSION_CODES.O)
-    private void showQuickAddDialog() {
-        android.widget.EditText shortName = new android.widget.EditText(this);
-        shortName.setHint("Short name (e.g., Amoxicillin 500mg)");
-
-        android.widget.EditText location = new android.widget.EditText(this);
-        location.setHint("Doctor location (e.g., Ermou 1, Athens or HYGEIA, Marousi)");
-
-        // Simple vertical container with padding
-        androidx.appcompat.widget.LinearLayoutCompat layout =
-                new androidx.appcompat.widget.LinearLayoutCompat(this);
-        layout.setOrientation(androidx.appcompat.widget.LinearLayoutCompat.VERTICAL);
-        int pad = (int) (16 * getResources().getDisplayMetrics().density);
-        layout.setPadding(pad, pad, pad, pad);
-        layout.addView(shortName);
-        layout.addView(location);
-
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("New prescription")
-                .setView(layout)
-                .setPositiveButton("Save", (d, w) -> {
-                    String s   = shortName.getText().toString().trim();
-                    String loc = location.getText().toString().trim();
-
-                    if (s.isEmpty()) {
-                        android.widget.Toast.makeText(this, "Short name is required", android.widget.Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    // If user typed only a name append a default city to help map search
-                    if (!loc.isEmpty() && !loc.contains(",") && !loc.matches(".*\\d.*")) {
-                        loc = loc + ", Athens"; // change default city if you prefer
-                    }
-
-                    vm.addDrug(
-                            s,
-                            "", // description
-                            java.time.LocalDate.now(),
-                            java.time.LocalDate.now().plusDays(30),
-                            1,  // timeTermId = before-breakfast
-                            "", // doctorName
-                            loc // save location
-                    );
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-    // Open details screen for the selected item
-    private void openDetailsLater(data.PrescriptionWithTerm it) {
-        android.content.Intent i = new android.content.Intent(this, ui.DetailsActivity.class);
+    // Open Details for the selected item
+    private void openDetails(PrescriptionWithTerm it) {
+        Intent i = new Intent(this, DetailsActivity.class);
         i.putExtra(DetailsActivity.EXTRA_UID, it.drug.uid);
         startActivity(i);
     }
 
-    // Delete-by-UID dialog; shows affected rows in a Toast
+    // Delete-by-UID dialog (shows affected rows)
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void showDeleteByUidDialog() {
         EditText uidEdit = new EditText(this);
         uidEdit.setHint("UID");
-        uidEdit.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        uidEdit.setInputType(InputType.TYPE_CLASS_NUMBER);
+
         new AlertDialog.Builder(this)
                 .setTitle("Delete by UID")
                 .setView(uidEdit)
                 .setPositiveButton("Delete", (d, w) -> {
-                    int uid = Integer.parseInt(uidEdit.getText().toString());
-                    vm.deleteByUid(uid, rows -> runOnUiThread(() ->
-                            Toast.makeText(this, "Deleted " + rows + " row(s)", Toast.LENGTH_SHORT).show()));
+                    String s = uidEdit.getText().toString().trim();
+                    try {
+                        int uid = Integer.parseInt(s);
+                        vm.deleteByUid(uid, rows -> runOnUiThread(() ->
+                                Toast.makeText(this, "Deleted " + rows + " row(s)", Toast.LENGTH_SHORT).show()));
+                    } catch (NumberFormatException ex) {
+                        Toast.makeText(this, "Please enter a valid UID number", Toast.LENGTH_SHORT).show();
+                    }
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
     }
 
-    // Inflate the main menu (⋮)
+    // Inflate overflow menu (⋮)
     @Override
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
     }
 
-    // Handle menu actions: recompute, export, delete-by-UID
+    // Menu actions: delete-by-UID, recompute, export, provider demo
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
-    public boolean onOptionsItemSelected(@androidx.annotation.NonNull android.view.MenuItem item) {
+    public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
         int id = item.getItemId();
 
         if (id == R.id.action_delete_uid) {
@@ -133,38 +101,93 @@ public class MainActivity extends AppCompatActivity {
             return true;
 
         } else if (id == R.id.action_recompute) {
-            androidx.work.WorkManager.getInstance(this)
-                    .enqueue(androidx.work.OneTimeWorkRequest.from(ui.RecomputeWorker.class));
-            android.widget.Toast.makeText(this, "Recompute scheduled", android.widget.Toast.LENGTH_SHORT).show();
+            WorkManager.getInstance(this)
+                    .enqueue(OneTimeWorkRequest.from(RecomputeWorker.class));
+            Toast.makeText(this, "Recompute scheduled", Toast.LENGTH_SHORT).show();
             return true;
 
         } else if (id == R.id.action_export_html) {
             vm.exportActive(true, uri -> {
                 if (uri == null) {
-                    android.widget.Toast.makeText(this, "Export failed (Android < 10 needs a different flow)", android.widget.Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Export failed (Android < 10 needs a different flow)", Toast.LENGTH_LONG).show();
                     return;
                 }
-                android.content.Intent i = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                Intent i = new Intent(Intent.ACTION_VIEW);
                 i.setDataAndType(uri, "text/html");
-                i.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                startActivity(android.content.Intent.createChooser(i, "Open export with"));
+                i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                startActivity(Intent.createChooser(i, "Open export with"));
             });
             return true;
 
         } else if (id == R.id.action_export_txt) {
             vm.exportActive(false, uri -> {
                 if (uri == null) {
-                    android.widget.Toast.makeText(this, "Export failed (Android < 10 needs a different flow)", android.widget.Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Export failed (Android < 10 needs a different flow)", Toast.LENGTH_LONG).show();
                     return;
                 }
-                android.content.Intent i = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+                Intent i = new Intent(Intent.ACTION_VIEW);
                 i.setDataAndType(uri, "text/plain");
-                i.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                startActivity(android.content.Intent.createChooser(i, "Open export with"));
+                i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                startActivity(Intent.createChooser(i, "Open export with"));
             });
+            return true;
+
+        } else if (id == R.id.action_provider_demo) {
+            runProviderDemo();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    // In-app ContentProvider demo: INSERT → verify → toast (keeps the row)
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void runProviderDemo() {
+        java.util.concurrent.Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                java.time.LocalDate now = java.time.LocalDate.now();
+                android.content.ContentValues v = new android.content.ContentValues();
+                v.put(provider.MedContract.Prescriptions.COL_SHORT, "ProviderTest 1");
+                v.put(provider.MedContract.Prescriptions.COL_START, now.toEpochDay());
+                v.put(provider.MedContract.Prescriptions.COL_END,   now.plusDays(7).toEpochDay());
+                v.put(provider.MedContract.Prescriptions.COL_TERM,  1);            // requires seeded term id=1
+                v.put(provider.MedContract.Prescriptions.COL_ACTIVE, 1);           // show in ACTIVE list
+                v.put(provider.MedContract.Prescriptions.COL_TODAY,  0);
+                v.put(provider.MedContract.Prescriptions.COL_LAST,   (Long) null);
+
+                android.net.Uri pUri = provider.MedContract.Prescriptions.CONTENT_URI;
+                android.net.Uri rowUri = getContentResolver().insert(pUri, v);
+                if (rowUri == null) throw new IllegalStateException("Insert failed (rowUri == null)");
+
+                long uid = android.content.ContentUris.parseId(rowUri);
+                android.util.Log.d(TAG, "insert -> " + rowUri);
+
+                // Optional: trigger recompute
+                androidx.work.WorkManager.getInstance(this)
+                        .enqueue(androidx.work.OneTimeWorkRequest.from(ui.RecomputeWorker.class));
+
+                // Verify the inserted row
+                try (android.database.Cursor c = getContentResolver().query(
+                        pUri, null, "uid=?", new String[]{ String.valueOf(uid) }, null)) {
+                    if (c != null && c.moveToFirst()) {
+                        int active = c.getInt(c.getColumnIndexOrThrow("isActive"));
+                        android.util.Log.d(TAG, "uid=" + uid + " isActive=" + active);
+                    }
+                }
+
+                // Keep the row so it appears in the list
+                runOnUiThread(() ->
+                        Toast.makeText(this,
+                                "Inserted via Provider (UID " + uid + ")",
+                                Toast.LENGTH_LONG).show());
+
+            } catch (Exception e) {
+                android.util.Log.e(TAG, "error", e);
+                runOnUiThread(() ->
+                        Toast.makeText(this,
+                                "Provider demo failed: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show());
+            }
+        });
     }
 }
